@@ -73,7 +73,6 @@
 #include "ufs_quirks.h"
 #include "ufshci.h"
 
-
 #if defined(CONFIG_SCSI_SKHPB)
 #include "ufshpb_skh.h"
 #endif
@@ -1088,6 +1087,11 @@ struct ufs_hba {
 	ANDROID_KABI_RESERVE(2);
 	ANDROID_KABI_RESERVE(3);
 	ANDROID_KABI_RESERVE(4);
+#ifdef CONFIG_SCSI_UFSHCD_QTI
+	/* distinguish between resume and restore */
+	bool restore;
+	bool abort_triggered_wlun;
+#endif
 };
 
 /* Returns true if clocks can be gated. Otherwise false */

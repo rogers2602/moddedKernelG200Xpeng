@@ -1,0 +1,1 @@
+obj-$(CONFIG_REGULATOR_AW37501) += aw37501.o

@@ -1643,7 +1643,7 @@ static struct config_group *uvcg_uncompressed_make(struct config_group *group,
 	h->desc.bDescriptorType		= USB_DT_CS_INTERFACE;
 	h->desc.bDescriptorSubType	= UVC_VS_FORMAT_UNCOMPRESSED;
 	memcpy(h->desc.guidFormat, guid, sizeof(guid));
-	h->desc.bBitsPerPixel		= 16;
+	h->desc.bBitsPerPixel		= 12;
 	h->desc.bDefaultFrameIndex	= 1;
 	h->desc.bAspectRatioX		= 0;
 	h->desc.bAspectRatioY		= 0;

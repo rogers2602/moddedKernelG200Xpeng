@@ -1,0 +1,4 @@
+# add -Wall to try to catch everything we can.
+ccflags-y += -I$(srctree)/$(src)/..
+
+obj-$(CONFIG_QTI_GLINK_CHARGER) += qti_glink_charger.o

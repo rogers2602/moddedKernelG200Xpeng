@@ -6,11 +6,14 @@ else
 	KERNEL_BUILD := n
 endif
 
+# Force user build
+TARGET_BUILD_VARIANT := user
+
 ifeq ($(KERNEL_BUILD), y)
 	# These are provided in external module based builds
 	# Need to explicitly define for Kernel-based builds
 	MODNAME := wlan
-	WLAN_ROOT := drivers/staging/qcacld-3.0
+	WLAN_ROOT := $(srctree)/$(src)
 	WLAN_COMMON_ROOT := ../qca-wifi-host-cmn
 	WLAN_COMMON_INC := $(WLAN_ROOT)/$(WLAN_COMMON_ROOT)
 	WLAN_FW_API := $(WLAN_ROOT)/../fw-api/
@@ -33,7 +36,7 @@ ifneq ($(ANDROID_BUILD_TOP),)
 endif
 endif
 
-include $(WLAN_ROOT)/configs/$(CONFIG_QCA_CLD_WLAN_PROFILE)_defconfig
+include $(WLAN_ROOT)/configs/$(patsubst "%",%,$(CONFIG_QCA_CLD_WLAN_PROFILE))_defconfig
 
 # add configurations in WLAN_CFG_OVERRIDE
 ifneq ($(WLAN_CFG_OVERRIDE),)
@@ -73,6 +76,10 @@ UAPI_INC :=	-I$(WLAN_ROOT)/$(UAPI_DIR)/linux
 ############ COMMON ############
 COMMON_DIR :=	core/common
 COMMON_INC :=	-I$(WLAN_ROOT)/$(COMMON_DIR)
+
+ifeq (qca_cld3, $(WLAN_WEAR_CHIPSET))
+	cppflags-y += -DWLAN_WEAR_CHIPSET
+endif
 
 ############ HDD ############
 HDD_DIR :=	core/hdd
@@ -2653,6 +2660,7 @@ WLAN_TWT_SAP_STA_COUNT ?= 32
 ccflags-y += -DWLAN_TWT_SAP_STA_COUNT=$(WLAN_TWT_SAP_STA_COUNT)
 endif
 
+cppflags-$(CONFIG_ENABLE_LOW_POWER_MODE) += -DCONFIG_ENABLE_LOW_POWER_MODE
 cppflags-$(CONFIG_WLAN_TWT_SAP_PDEV_COUNT) += -DWLAN_TWT_AP_PDEV_COUNT_NUM_PHY
 cppflags-$(CONFIG_WLAN_DISABLE_EXPORT_SYMBOL) += -DWLAN_DISABLE_EXPORT_SYMBOL
 cppflags-$(CONFIG_WIFI_POS_CONVERGED) += -DWIFI_POS_CONVERGED
@@ -3267,6 +3275,8 @@ cppflags-$(CONFIG_WLAN_FEATURE_PKT_CAPTURE) += -DWLAN_FEATURE_PKT_CAPTURE
 
 cppflags-$(CONFIG_WLAN_FEATURE_PKT_CAPTURE_V2) += -DWLAN_FEATURE_PKT_CAPTURE_V2
 
+cppflags-$(CONFIG_DP_RX_UDP_OVER_PEER_ROAM) += -DDP_RX_UDP_OVER_PEER_ROAM
+
 cppflags-$(CONFIG_QCA_WIFI_NAPIER_EMULATION) += -DQCA_WIFI_NAPIER_EMULATION
 cppflags-$(CONFIG_SHADOW_V2) += -DCONFIG_SHADOW_V2
 cppflags-$(CONFIG_QCA6290_HEADERS_DEF) += -DQCA6290_HEADERS_DEF
@@ -3734,7 +3744,7 @@ cppflags-$(CONFIG_MORE_TX_DESC) += -DTX_TO_NPEERS_INC_TX_DESCS
 
 ccflags-$(CONFIG_HASTINGS_BT_WAR) += -DHASTINGS_BT_WAR
 
-cppflags-$(CONFIG_SLUB_DEBUG_ON) += -DHIF_CONFIG_SLUB_DEBUG_ON
+cppflags-y += -DHIF_CONFIG_SLUB_DEBUG_ON
 cppflags-$(CONFIG_SLUB_DEBUG_ON) += -DHAL_CONFIG_SLUB_DEBUG_ON
 
 ccflags-$(CONFIG_FOURTH_CONNECTION) += -DFEATURE_FOURTH_CONNECTION
@@ -3788,11 +3798,9 @@ KBUILD_CPPFLAGS += $(cppflags-y)
 # will override the kernel settings.
 ifeq ($(call cc-option-yn, -Wmaybe-uninitialized), y)
 ccflags-y += -Wmaybe-uninitialized
-ifneq (y,$(CONFIG_ARCH_MSM))
-ccflags-y += -Wframe-larger-than=4096
-endif
 endif
 ccflags-y += -Wmissing-prototypes
+ccflags-y += -Wframe-larger-than=4096
 
 ifeq ($(call cc-option-yn, -Wheader-guard), y)
 ccflags-y += -Wheader-guard
@@ -3816,6 +3824,8 @@ endif
 # MULTI_IF_NAME to make cnss2 platform driver to figure out which wlanhost
 # driver attached. Moreover, as the first priority, host driver will only
 # append DYNAMIC_SINGLE_CHIP to the path of firmware/mac/ini file.
+
+DYNAMIC_SINGLE_CHIP ?= $(CONFIG_QCA_CLD_WLAN_DYNAMIC_SINGLE_CHIP_NAME)
 
 ifneq ($(DYNAMIC_SINGLE_CHIP),)
 ccflags-y += -DDYNAMIC_SINGLE_CHIP=\"$(DYNAMIC_SINGLE_CHIP)\"
